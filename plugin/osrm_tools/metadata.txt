@@ -1,14 +1,14 @@
 [general]
 name=OSRM Tools
-description=Análisis de accesibilidad y asignación masiva con servidores OSRM locales (enrutamiento 1 a N, matrices MxN, asignación a centros de servicio).
-about=Plugin de Processing para QGIS que aprovecha servidores OSRM locales (auto/a pie) para: (1) enrutar un origen a multiples destinos con geometrias, (2) calcular matrices de tiempos/distancias MxN, (3) asignar localidades, AGEBs o manzanas al centro de servicio mas cercano por red vial, con filtro euclidiano previo y procesamiento por bloques, y (4) calcular rutas para asignaciones ya existentes. Pensado para corridas masivas (cientos de miles de demandas) contra servidores OSRM propios.
-version=0.1.0
+description=Análisis de accesibilidad con OSRM y servidor local administrado mediante Docker o binarios (enrutamiento, matrices y asignación a centros).
+about=Plugin de Processing para QGIS que puede detectar, instalar, preparar y controlar un servidor OSRM local con Docker o binarios verificados. Prepara grafos MLD desde PBF locales o Geofabrik y los reutiliza mediante huella SHA-256. Incluye algoritmos para: (1) enrutar un origen a múltiples destinos con geometrías, (2) calcular matrices MxN, (3) asignar demanda al centro más cercano por red y (4) calcular rutas para asignaciones existentes. El servidor propio se detiene al cerrar QGIS.
+version=0.2.0
 qgisMinimumVersion=3.28
 author=OSRM Tools contributors
 email=
-tracker=
-repository=
-homepage=
+tracker=https://github.com/ArGontr/osrm-tools-qgis/issues
+repository=https://github.com/ArGontr/osrm-tools-qgis
+homepage=https://github.com/ArGontr/osrm-tools-qgis
 category=Analysis
 experimental=True
 deprecated=False
