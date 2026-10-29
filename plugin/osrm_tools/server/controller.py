@@ -5,7 +5,11 @@ from pathlib import Path
 from qgis.core import QgsApplication, QgsMessageLog
 from qgis.PyQt.QtCore import Qt, QTimer
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction, QMessageBox
+try:
+    from qgis.PyQt.QtGui import QAction  # Qt6 / QGIS 4
+except ImportError:
+    from qgis.PyQt.QtWidgets import QAction  # Qt5 / QGIS 3
+from qgis.PyQt.QtWidgets import QMessageBox
 
 from .dialog import ServerDialog
 from .manager import LocalServerManager, is_osrm_running
@@ -42,8 +46,9 @@ class LocalServerController:
             'No se detectó un servidor OSRM en http://127.0.0.1:5000.\n\n'
             '¿Deseas configurar e iniciar uno ahora? Podrás usar Docker o '
             'binarios locales y elegir un PBF propio o de Geofabrik.',
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if answer == QMessageBox.Yes:
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No)
+        if answer == QMessageBox.StandardButton.Yes:
             self.show_dialog()
 
     def schedule_auto_start(self):
@@ -55,7 +60,7 @@ class LocalServerController:
             return
         if self.dialog is None:
             self.dialog = ServerDialog(self.manager, self.iface.mainWindow())
-            self.dialog.setAttribute(Qt.WA_DeleteOnClose)
+            self.dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
             self.dialog.destroyed.connect(self._dialog_destroyed)
         self.dialog.show()
         self.dialog.raise_()
