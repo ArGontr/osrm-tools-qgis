@@ -29,7 +29,9 @@ Al activar el plugin se comprueba `http://127.0.0.1:5000`. Si ya hay un OSRM,
 no se modifica. Si no, el plugin pregunta si deseas configurar uno. Tambien
 puedes abrir **OSRM Tools > Servidor OSRM local…** o usar su boton de barra.
 
-1. Elige **Docker** (recomendado) o **Binarios OSRM**.
+1. Elige **Docker** (recomendado y predeterminado) o **Binarios OSRM** como
+   alternativa. Al actualizar, si Docker esta instalado se selecciona una vez;
+   despues el plugin recuerda el motor que elijas.
 2. Selecciona un `.osm.pbf` local o pega una URL HTTPS de Geofabrik, por ejemplo
    `https://download.geofabrik.de/north-america/mexico-latest.osm.pbf`.
 3. Elige una carpeta con espacio suficiente. Los grafos pueden ocupar varias

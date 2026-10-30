@@ -75,7 +75,7 @@ class ServerDialog(QDialog):
         form = QFormLayout()
         self.backend_combo = QComboBox()
         self.backend_combo.addItem('Docker (recomendado)', 'docker')
-        self.backend_combo.addItem('Binarios OSRM (e-kotov; SHA-256)', 'native')
+        self.backend_combo.addItem('Binarios OSRM (alternativa; SHA-256)', 'native')
         form.addRow('Motor:', self.backend_combo)
         docker_button = QPushButton('Descargar Docker Desktop…')
         docker_button.clicked.connect(lambda: QDesktopServices.openUrl(QUrl(DOCKER_DOWNLOAD)))
@@ -100,7 +100,6 @@ class ServerDialog(QDialog):
         self.source_stack.addWidget(local_page)
         url_page = QWidget()
         url_layout = QHBoxLayout(url_page)
-        url_layout.setContentsMargins(0, 0, 0, 0)
         self.url_edit = QLineEdit()
         self.url_edit.setPlaceholderText(DEFAULT_GEOFABRIK)
         url_layout.addWidget(self.url_edit)
@@ -148,6 +147,12 @@ class ServerDialog(QDialog):
     def _load_settings(self):
         settings = QgsSettings()
         backend = settings.value(PREFIX + 'backend', 'docker', type=str)
+        migration_key = PREFIX + 'docker_default_v1'
+        if not settings.value(migration_key, False, type=bool):
+            # Migra una sola vez instalaciones que guardaron "native" en versiones previas.
+            if self.manager.docker_executable():
+                backend = 'docker'
+            settings.setValue(migration_key, True)
         index = self.backend_combo.findData(backend)
         self.backend_combo.setCurrentIndex(max(0, index))
         self.pbf_edit.setText(settings.value(PREFIX + 'pbf_path', '', type=str))
