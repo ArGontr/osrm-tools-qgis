@@ -100,6 +100,7 @@ class ServerDialog(QDialog):
         self.source_stack.addWidget(local_page)
         url_page = QWidget()
         url_layout = QHBoxLayout(url_page)
+        url_layout.setContentsMargins(0, 0, 0, 0)
         self.url_edit = QLineEdit()
         self.url_edit.setPlaceholderText(DEFAULT_GEOFABRIK)
         url_layout.addWidget(self.url_edit)
