@@ -35,6 +35,13 @@ class OsrmHandler(BaseHTTPRequestHandler):
         pass
 
 
+def write_graph_files(graph_base, empty_base=False):
+    Path(str(graph_base) + '.osrm').write_bytes(b'' if empty_base else b'graph')
+    for suffix, payload in (('.osrm.mldgr', b'mld'), ('.osrm.partition', b'partition'),
+                            ('.osrm.cells', b'cells'), ('.osrm.cell_metrics', b'metrics')):
+        Path(str(graph_base) + suffix).write_bytes(payload)
+
+
 class ServerManagerTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -63,8 +70,7 @@ class ServerManagerTests(unittest.TestCase):
     def test_graph_manifest_and_fingerprint_are_required(self):
         graph_dir, graph_base = self.manager.graph_paths(self.base, 'a' * 64)
         graph_dir.mkdir(parents=True)
-        Path(str(graph_base) + '.osrm').write_bytes(b'graph')
-        Path(str(graph_base) + '.osrm.mldgr').write_bytes(b'mld')
+        write_graph_files(graph_base, empty_base=True)
         self.assertFalse(self.manager.graph_is_valid(graph_dir, graph_base, 'a' * 64))
         (graph_dir / 'graph.json').write_text(json.dumps({
             'complete': True, 'pipeline': 'extract-partition-customize',
@@ -113,6 +119,22 @@ class ServerManagerTests(unittest.TestCase):
                 'data_dir': str(self.base),
                 'pbf_url': 'https://example.com/map.osm.pbf'}, lambda *args: None, None)
 
+    def test_complete_graph_with_empty_marker_is_adopted_without_rebuild(self):
+        pbf = self.base / 'mexico.osm.pbf'
+        pbf.write_bytes(b'existing-six-hour-graph')
+        fingerprint = hashlib.sha256(pbf.read_bytes()).hexdigest()
+        data_dir = self.base / 'data'
+        graph_dir, graph_base = self.manager.graph_paths(data_dir, fingerprint)
+        graph_dir.mkdir(parents=True)
+        write_graph_files(graph_base, empty_base=True)
+        config = {'backend': 'native', 'pbf_path': str(pbf),
+                  'pbf_url': '', 'data_dir': str(data_dir)}
+        with mock.patch.object(self.manager, '_run') as run:
+            result = self.manager.prepare_graph(config, lambda *args: None, None)
+        run.assert_not_called()
+        self.assertEqual(result[1], graph_base)
+        self.assertTrue(self.manager.graph_is_valid(graph_dir, graph_base, fingerprint))
+
     def test_native_pipeline_runs_in_order_and_reuses_graph(self):
         pbf = self.base / 'monaco.osm.pbf'
         pbf.write_bytes(b'fake-pbf-for-command-test')
@@ -125,9 +147,14 @@ class ServerManagerTests(unittest.TestCase):
             if Path(command[0]).name == 'osrm-extract':
                 output = Path(command[command.index('--output') + 1])
                 Path(str(output) + '.osrm').write_bytes(b'graph')
+            if Path(command[0]).name == 'osrm-partition':
+                graph = Path(command[-1])
+                Path(str(graph) + '.partition').write_bytes(b'partition')
+                Path(str(graph) + '.cells').write_bytes(b'cells')
             if Path(command[0]).name == 'osrm-customize':
                 graph = Path(command[-1])
                 Path(str(graph) + '.mldgr').write_bytes(b'mld')
+                Path(str(graph) + '.cell_metrics').write_bytes(b'metrics')
 
         config = {'backend': 'native', 'pbf_path': str(pbf),
                   'pbf_url': '', 'data_dir': str(self.base / 'data')}

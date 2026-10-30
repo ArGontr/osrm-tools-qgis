@@ -299,8 +299,7 @@ class LocalServerManager:
     @staticmethod
     def graph_is_valid(graph_dir, graph_base, fingerprint=None):
         manifest_path = Path(graph_dir) / 'graph.json'
-        required = [Path(str(graph_base) + '.osrm'), Path(str(graph_base) + '.osrm.mldgr')]
-        if not all(path.is_file() and path.stat().st_size > 0 for path in required):
+        if not LocalServerManager.graph_is_valid_files(graph_base):
             return False
         try:
             manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
@@ -335,15 +334,17 @@ class LocalServerManager:
         progress(-1, 'Calculando la huella del archivo OSM…')
         fingerprint = _sha256(pbf, cancel_event)
         graph_dir, graph_base = self.graph_paths(config['data_dir'], fingerprint)
-        if self.graph_is_valid(graph_dir, graph_base, fingerprint):
-            progress(100, 'Grafo funcional encontrado; no hace falta reprocesarlo.')
+        if self.graph_is_valid_files(graph_base):
+            # Recupera también grafos completos de versiones que no crearon graph.json.
+            if not self.graph_is_valid(graph_dir, graph_base, fingerprint):
+                self._write_graph_manifest(graph_dir, pbf, fingerprint)
+            progress(100, 'Grafo MLD funcional encontrado; no hace falta reprocesarlo.')
             return graph_dir, graph_base, fingerprint
 
         # Un grafo incompleto no se mezcla con archivos de un intento anterior.
         if graph_dir.exists():
             shutil.rmtree(str(graph_dir))
         graph_dir.mkdir(parents=True, exist_ok=True)
-        manifest_path = graph_dir / 'graph.json'
         backend = config.get('backend', 'docker')
         if backend == 'docker':
             self._build_graph_docker(pbf, graph_dir, progress, cancel_event,
@@ -359,6 +360,22 @@ class LocalServerManager:
             raise ServerError('Motor no reconocido: {0}'.format(backend))
         if not self.graph_is_valid_files(graph_base):
             raise ServerError('OSRM terminó sin generar un grafo MLD completo. Revisa el registro.')
+        self._write_graph_manifest(graph_dir, pbf, fingerprint)
+        progress(100, 'Grafo OSRM preparado correctamente.')
+        return graph_dir, graph_base, fingerprint
+
+    @staticmethod
+    def graph_is_valid_files(graph_base):
+        # El .osrm base puede ser un marcador de 0 bytes; no exigir contenido.
+        if not Path(str(graph_base) + '.osrm').is_file():
+            return False
+        return all(Path(str(graph_base) + suffix).is_file()
+                   and Path(str(graph_base) + suffix).stat().st_size > 0
+                   for suffix in ('.osrm.mldgr', '.osrm.partition',
+                                  '.osrm.cells', '.osrm.cell_metrics'))
+
+    @staticmethod
+    def _write_graph_manifest(graph_dir, pbf, fingerprint):
         manifest = {
             'complete': True,
             'pipeline': 'extract-partition-customize',
@@ -368,15 +385,8 @@ class LocalServerManager:
             'source': str(pbf),
             'created': int(time.time()),
         }
-        manifest_path.write_text(json.dumps(manifest, indent=2), encoding='utf-8')
-        progress(100, 'Grafo OSRM preparado correctamente.')
-        return graph_dir, graph_base, fingerprint
-
-    @staticmethod
-    def graph_is_valid_files(graph_base):
-        return all(Path(str(graph_base) + suffix).is_file()
-                   and Path(str(graph_base) + suffix).stat().st_size > 0
-                   for suffix in ('.osrm', '.osrm.mldgr'))
+        (Path(graph_dir) / 'graph.json').write_text(
+            json.dumps(manifest, indent=2), encoding='utf-8')
 
     def _build_graph_native(self, tools, pbf, graph_dir, graph_base,
                             progress, cancel_event):

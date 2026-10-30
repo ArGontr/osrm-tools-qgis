@@ -2,7 +2,7 @@
 name=OSRM Tools
 description=Análisis de accesibilidad con OSRM y servidor local administrado mediante Docker o binarios (enrutamiento, matrices y asignación a centros).
 about=Plugin de Processing para QGIS que puede detectar, instalar, preparar y controlar un servidor OSRM local con Docker o binarios verificados. Prepara grafos MLD desde PBF locales o Geofabrik y los reutiliza mediante huella SHA-256. Incluye algoritmos para: (1) enrutar un origen a múltiples destinos con geometrías, (2) calcular matrices MxN, (3) asignar demanda al centro más cercano por red y (4) calcular rutas para asignaciones existentes. El servidor propio se detiene al cerrar QGIS.
-version=0.2.1
+version=0.2.2
 qgisMinimumVersion=3.28
 author=OSRM Tools contributors
 email=
