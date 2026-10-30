@@ -135,6 +135,23 @@ class ServerManagerTests(unittest.TestCase):
         self.assertEqual(result[1], graph_base)
         self.assertTrue(self.manager.graph_is_valid(graph_dir, graph_base, fingerprint))
 
+    def test_complete_graph_without_base_file_is_adopted_without_rebuild(self):
+        pbf = self.base / 'mexico.osm.pbf'
+        pbf.write_bytes(b'osrm-26-has-no-base-marker')
+        fingerprint = hashlib.sha256(pbf.read_bytes()).hexdigest()
+        data_dir = self.base / 'data'
+        graph_dir, graph_base = self.manager.graph_paths(data_dir, fingerprint)
+        graph_dir.mkdir(parents=True)
+        write_graph_files(graph_base)
+        Path(str(graph_base) + '.osrm').unlink()
+        config = {'backend': 'native', 'pbf_path': str(pbf),
+                  'pbf_url': '', 'data_dir': str(data_dir)}
+        with mock.patch.object(self.manager, '_run') as run:
+            result = self.manager.prepare_graph(config, lambda *args: None, None)
+        run.assert_not_called()
+        self.assertEqual(result[1], graph_base)
+        self.assertTrue(self.manager.graph_is_valid(graph_dir, graph_base, fingerprint))
+
     def test_native_pipeline_runs_in_order_and_reuses_graph(self):
         pbf = self.base / 'monaco.osm.pbf'
         pbf.write_bytes(b'fake-pbf-for-command-test')
@@ -144,9 +161,7 @@ class ServerManagerTests(unittest.TestCase):
 
         def fake_run(command, *args, **kwargs):
             commands.append(Path(command[0]).name)
-            if Path(command[0]).name == 'osrm-extract':
-                output = Path(command[command.index('--output') + 1])
-                Path(str(output) + '.osrm').write_bytes(b'graph')
+            # OSRM 26 no necesita crear el archivo base driving.osrm.
             if Path(command[0]).name == 'osrm-partition':
                 graph = Path(command[-1])
                 Path(str(graph) + '.partition').write_bytes(b'partition')

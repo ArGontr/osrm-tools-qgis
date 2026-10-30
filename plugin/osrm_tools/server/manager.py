@@ -366,9 +366,8 @@ class LocalServerManager:
 
     @staticmethod
     def graph_is_valid_files(graph_base):
-        # El .osrm base puede ser un marcador de 0 bytes; no exigir contenido.
-        if not Path(str(graph_base) + '.osrm').is_file():
-            return False
+        # El .osrm base es un prefijo lógico: OSRM 26 puede no crear ese archivo.
+        # Los productos reales de partition/customize sí deben existir y tener contenido.
         return all(Path(str(graph_base) + suffix).is_file()
                    and Path(str(graph_base) + suffix).stat().st_size > 0
                    for suffix in ('.osrm.mldgr', '.osrm.partition',
