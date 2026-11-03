@@ -108,3 +108,15 @@ y del arranque con un PBF real debe hacerse dentro de QGIS en el equipo destino.
 Comprimir la carpeta `plugin\osrm_tools` como `osrm_tools.zip` (la carpeta debe
 estar en la raiz del zip). Instalar en otro equipo: Complementos > Instalar
 desde ZIP.
+
+## Licencia y contacto
+
+Copyright (C) 2026 **ArGontr**.
+
+OSRM Tools se distribuye bajo la **GNU General Public License, version 3 o
+(at your option) any later version** (`GPL-3.0-or-later`). Esto permite usar,
+estudiar, modificar y redistribuir el complemento, conservando su codigo abierto,
+la atribucion y los terminos de la licencia. Consulta el texto completo en
+[LICENSE](LICENSE).
+
+Autor y contacto: [github.com/ArGontr](https://github.com/ArGontr).
