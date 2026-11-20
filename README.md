@@ -16,12 +16,43 @@ algoritmos integrados en la caja de herramientas de Procesamiento de QGIS
 
 ## Requisitos
 
-- QGIS >= 3.28 (desarrollado en 3.44).
+- QGIS >= 3.28 (compatible con QGIS 4 y desarrollado originalmente en 3.44).
 - Uno o dos servidores OSRM propios (externos o administrados por el plugin).
   El servidor administrado usa `--max-table-size 10000`; el parametro
   *Max. localidades por llamada* debe ser menor (default del plugin: 9000).
 - El plugin usa solo la stdlib de Python para HTTP (`urllib`); el XLSX opcional
   requiere `openpyxl` (incluido en QGIS para Windows).
+
+## Instalacion desde GitHub
+
+1. Abre el [repositorio](https://github.com/ArGontr/osrm-tools-qgis), pulsa
+   **Code > Download ZIP** y descomprime el archivo.
+2. Dentro del ZIP localiza la carpeta `plugin/osrm_tools`.
+3. En QGIS abre **Configuracion > Perfiles de usuario > Abrir carpeta del
+   perfil activo**.
+4. Copia la carpeta completa `osrm_tools` dentro de `python/plugins`. Si la
+   carpeta `plugins` no existe, creala. La ruta final debe ser:
+   ```text
+   python/plugins/osrm_tools/metadata.txt
+   ```
+5. Reinicia QGIS y abre **Complementos > Administrar e instalar complementos >
+   Instalados**. Marca la casilla de **OSRM Tools**.
+6. Los algoritmos aparecen en la caja de herramientas de Procesamiento bajo
+   **OSRM Tools**. Al activarlo, el plugin te ayudara a configurar el servidor
+   local; selecciona **Docker (recomendado)** y pulsa **Preparar e iniciar**.
+
+**Importante:** no instales directamente el ZIP completo descargado desde
+**Code > Download ZIP** mediante **Instalar desde ZIP**, porque contiene la
+carpeta intermedia `plugin`. Para ese metodo, comprime unicamente la carpeta
+`osrm_tools`, de modo que `metadata.txt` quede en `osrm_tools/metadata.txt`
+dentro del nuevo ZIP.
+
+En Windows, la carpeta del perfil suele encontrarse en:
+```text
+%APPDATA%\QGIS\QGIS3\profiles\default\python\plugins
+```
+Se recomienda abrirla desde el menu de QGIS para asegurar que se utiliza el
+perfil activo, especialmente si tienes varios perfiles.
 
 ## Servidor OSRM local administrado
 
